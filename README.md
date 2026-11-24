@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎮 Tic-Tac-Toe Game
 
-## Getting Started
+A stylish, interactive, and feature-rich Tic-Tac-Toe game crafted with themes, sound effects, AI matchmaking, and live score tracking.
 
-First, run the development server:
+---
+
+## ✨ Features
+
+### 1. Core Mechanics
+- 🎯 **3×3 Responsive Grid**: Smooth tactile interactions with hover ghost-previews of each player's mark.
+- 🔁 **Turn-Based System**: Alternate turns between Player 1 and Player 2 with glowing turn indicators.
+- 🏆 **Win & Draw Detection**: Instantly detects 3-in-a-row (rows, columns, diagonals) or stalemates, highlighting the winning combination with glowing animations.
+- 🔄 **New Game Button**: Resets the board for an immediate rematch.
+
+### 2. Personality & Themes (Make It Yours!)
+Switch between 5 creative themes on the fly:
+- ⚡ **Cyber Neon**: Neon Cyan (`✕`) vs Neon Pink (`◯`) with glowing synthwave aesthetics.
+- 🚀 **Cosmic Battle**: Astronaut Rocket (`🚀`) vs Alien Invaders (`👾`) in deep space.
+- 🍕 **Snack Attack**: Team Pizza (`🍕`) vs Team Burger (`🍔`).
+- 🐾 **Paws & Claws**: Cat Squad (`🐱`) vs Dog Squad (`🐶`).
+- 🔥 **Arcade Elements**: Voltage (`⚡`) vs Blaze (`🔥`).
+
+### 3. Extra Bonuses & Superpowers
+- 🤖 **Single-Player vs AI Mode**:
+  - **Chill (Easy)**: Casual, relaxed play.
+  - **Smart (Medium)**: Blocks immediate opponent wins and capitalizes on mistakes.
+  - **Master (Unbeatable)**: Full Minimax algorithm implementation with depth penalty.
+- 📊 **Dynamic Scoreboard**:
+  - Tracks Player 1 wins, Player 2 / CPU wins, and Draws.
+  - Streak tracking (current win streak and best streak).
+  - Scores persist across reloads via `localStorage`.
+- 🔊 **Zero-Dependency Sound Synthesizer**:
+  - Procedural sound effects powered by the Web Audio API (cell placements, victory fanfares, draw wobbles, button clicks).
+  - Audio mute/unmute toggle included.
+- 🎉 **Celebration & Polish**:
+  - Confetti burst on victory via `canvas-confetti`.
+  - Move undo support.
+  - Keyboard accessible (`Tab`, `Space`, `Enter`).
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Turbopack)
+- **Library**: [React 19](https://react.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **FX**: `canvas-confetti`, Web Audio API
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+Node.js 20+ installed.
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production Build & Verification
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run build
+npm run start
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🌐 Deploy to Vercel
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The application is pre-configured and optimized for 1-click deployment on [Vercel](https://vercel.com):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push your repository to GitHub, GitLab, or Bitbucket.
+2. Import the repository into your Vercel Dashboard.
+3. Deploy! Next.js will automatically detect settings and deploy static pages with edge speed.
