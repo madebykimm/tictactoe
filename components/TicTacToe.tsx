@@ -1,10 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { BoardState, Player, ThemeConfig, GameMode, AIDifficulty, ScoreState, WinningLine } from '../lib/types';
+import { BoardState, Player, ThemeConfig, GameMode, AIDifficulty, WinningLine } from '../lib/types';
 import { THEMES } from '../lib/themes';
 import { checkWinner, isBoardFull, getAIMove } from '../lib/gameLogic';
 import { sounds } from '../lib/audio';
+import {
+  useStoredTheme,
+  useStoredGameMode,
+  useStoredDifficulty,
+  useStoredScores,
+  DEFAULT_SCORES,
+} from '../lib/storage';
 import { Board } from './Board';
 import { Scoreboard } from './Scoreboard';
 import { ThemeSelector } from './ThemeSelector';
@@ -24,75 +31,22 @@ export const TicTacToe: React.FC = () => {
   const [isDraw, setIsDraw] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  // Settings with lazy initialization
-  const [theme, setTheme] = useState<ThemeConfig>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedThemeId = localStorage.getItem('tictactoe_theme');
-        if (savedThemeId) {
-          const found = THEMES.find((t) => t.id === savedThemeId);
-          if (found) return found;
-        }
-      } catch {}
-    }
-    return THEMES[0];
-  });
+  // Stored settings via useSyncExternalStore (completely prevents SSR hydration mismatch)
+  const [themeId, setThemeId] = useStoredTheme('cyber');
+  const [gameMode, setGameMode] = useStoredGameMode('pvp');
+  const [aiDifficulty, setAiDifficulty] = useStoredDifficulty('medium');
+  const [scores, setScores] = useStoredScores();
 
-  const [gameMode, setGameMode] = useState<GameMode>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedMode = localStorage.getItem('tictactoe_mode') as GameMode;
-        if (savedMode === 'pvp' || savedMode === 'ai') return savedMode;
-      } catch {}
-    }
-    return 'pvp';
-  });
-
-  const [aiDifficulty, setAiDifficulty] = useState<AIDifficulty>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedDiff = localStorage.getItem('tictactoe_diff') as AIDifficulty;
-        if (savedDiff === 'easy' || savedDiff === 'medium' || savedDiff === 'unbeatable') {
-          return savedDiff;
-        }
-      } catch {}
-    }
-    return 'medium';
-  });
+  const theme: ThemeConfig = THEMES.find((t) => t.id === themeId) || THEMES[0];
 
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [player1Name, setPlayer1Name] = useState<string>('Player 1');
   const [player2Name, setPlayer2Name] = useState<string>('Player 2');
 
-  // Scores with lazy initialization
-  const [scores, setScores] = useState<ScoreState>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedScores = localStorage.getItem('tictactoe_scores');
-        if (savedScores) return JSON.parse(savedScores);
-      } catch {}
-    }
-    return {
-      player1Wins: 0,
-      player2Wins: 0,
-      draws: 0,
-      currentStreak: { player: null, count: 0 },
-      bestStreak: 0,
-    };
-  });
-
   const aiTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Derived state: AI is thinking whenever it is CPU's turn and game is ongoing
   const isAIThinking = gameMode === 'ai' && currentTurn === 'O' && !winner && !isDraw;
-
-  // Save scores to localStorage helper
-  const updateScores = useCallback((newScores: ScoreState) => {
-    setScores(newScores);
-    try {
-      localStorage.setItem('tictactoe_scores', JSON.stringify(newScores));
-    } catch {}
-  }, []);
 
   // Handle game end
   const handleGameOver = useCallback((winResult: { winner: Player; line: WinningLine } | null, draw: boolean) => {
@@ -113,7 +67,7 @@ export const TicTacToe: React.FC = () => {
           newStreakCount = prev.currentStreak.count + 1;
         }
 
-        const nextScores: ScoreState = {
+        return {
           player1Wins: p1Wins,
           player2Wins: p2Wins,
           draws: prev.draws,
@@ -123,29 +77,19 @@ export const TicTacToe: React.FC = () => {
           },
           bestStreak: Math.max(prev.bestStreak, newStreakCount),
         };
-        try {
-          localStorage.setItem('tictactoe_scores', JSON.stringify(nextScores));
-        } catch {}
-        return nextScores;
       });
     } else if (draw) {
       setIsDraw(true);
       setIsModalOpen(true);
       sounds.playDraw();
 
-      setScores((prev) => {
-        const nextScores: ScoreState = {
-          ...prev,
-          draws: prev.draws + 1,
-          currentStreak: { player: null, count: 0 },
-        };
-        try {
-          localStorage.setItem('tictactoe_scores', JSON.stringify(nextScores));
-        } catch {}
-        return nextScores;
-      });
+      setScores((prev) => ({
+        ...prev,
+        draws: prev.draws + 1,
+        currentStreak: { player: null, count: 0 },
+      }));
     }
-  }, []);
+  }, [setScores]);
 
   // Move handler
   const makeMove = useCallback((index: number, player: Player) => {
@@ -232,14 +176,7 @@ export const TicTacToe: React.FC = () => {
 
   // Reset scores
   const handleResetScores = () => {
-    const emptyScores: ScoreState = {
-      player1Wins: 0,
-      player2Wins: 0,
-      draws: 0,
-      currentStreak: { player: null, count: 0 },
-      bestStreak: 0,
-    };
-    updateScores(emptyScores);
+    setScores(DEFAULT_SCORES);
     sounds.playClick();
   };
 
@@ -252,11 +189,8 @@ export const TicTacToe: React.FC = () => {
 
   // Select Theme
   const handleSelectTheme = (newTheme: ThemeConfig) => {
-    setTheme(newTheme);
+    setThemeId(newTheme.id);
     sounds.playClick();
-    try {
-      localStorage.setItem('tictactoe_theme', newTheme.id);
-    } catch {}
   };
 
   // Change Game Mode
@@ -264,18 +198,12 @@ export const TicTacToe: React.FC = () => {
     setGameMode(mode);
     handleNewGame();
     sounds.playClick();
-    try {
-      localStorage.setItem('tictactoe_mode', mode);
-    } catch {}
   };
 
   // Change AI Difficulty
   const handleChangeDifficulty = (diff: AIDifficulty) => {
     setAiDifficulty(diff);
     sounds.playClick();
-    try {
-      localStorage.setItem('tictactoe_diff', diff);
-    } catch {}
   };
 
   const movesCount = board.filter(Boolean).length;
